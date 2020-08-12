@@ -1,0 +1,6 @@
+- tenant:
+    name: 'local'
+    source:
+      gerrit:
+        untrusted-projects:
+          - riaandotmodus/MintDemo

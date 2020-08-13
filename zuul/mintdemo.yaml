@@ -1,5 +1,5 @@
 - tenant:
-    name: 'local'
+    name: 'RiaanSF'
     source:
       gerrit:
         untrusted-projects:

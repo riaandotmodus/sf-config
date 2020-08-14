@@ -6,22 +6,7 @@
       Newly uploaded patchsets enter this pipeline to receive an
       initial +/-1 Verified vote.
     manager: independent
-    require:
-      gerrit:
-        open: True
-        current-patchset: True
     trigger:
-      gerrit:
-        - event: patchset-created
-        - event: change-restored
-        - event: comment-added
-          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*(recheck|reverify)
-        - event: comment-added
-          require-approval:
-            - Verified: [-1, -2]
-              username: zuul
-          approval:
-            - Workflow: 1
       github.com:
         - event: pull_request
           action:
@@ -34,21 +19,17 @@
     start:
       github.com:
         status: 'pending'
-        status-url: "https://sftests.mundane.co.za/zuul/t/local/status.html"
+        status-url: "https://sftests.mundane.co.za/zuul/t/RiaanSoftwareFactory/status/change/{change.number},{change.patchset}"
         comment: false
-      gerrit:
-        Verified: 0
     success:
       github.com:
         status: 'success'
-      gerrit:
-        Verified: 1
+        status-url: "https://sftests.mundane.co.za/zuul/t/RiaanSoftwareFactory/buildset/{buildset.uuid}"
       sqlreporter:
     failure:
       github.com:
         status: 'failure'
-      gerrit:
-        Verified: -1
+        status-url: "https://sftests.mundane.co.za/zuul/t/RiaanSoftwareFactory/buildset/{buildset.uuid}"
       sqlreporter:
 
 - pipeline:
@@ -65,32 +46,15 @@
     precedence: high
     post-review: True
     require:
-      gerrit:
-        open: True
-        current-patchset: True
-        approval:
-          - Verified: [1, 2]
-            username: zuul
-          - Workflow: 1
       github.com:
         review:
           # Require an approval from user with write access (e.g. core-reviewer)
           - permission: write
             type: approved
-        # Require label
-        label: mergeit
-        status: "SF Demo for dotmodus\\[bot\\]:local/check:success"
+        status: "SF Demo for dotmodus\\[bot\\]:RiaanSoftwareFactory/check:success"
         open: True
         current-patchset: True
     trigger:
-      gerrit:
-        - event: comment-added
-          approval:
-            - Workflow: 1
-        - event: comment-added
-          approval:
-            - Verified: 1
-          username: zuul
       github.com:
         - event: pull_request_review
           action: submitted
@@ -99,39 +63,27 @@
           action: comment
           comment: (?i)^\s*regate\s*$
         - event: pull_request_review
-          action: submitted
-          state: approved
-        - event: pull_request_review
           action: dismissed
           state: request_changes
         - event: pull_request
           action: status
-          status: "SF Demo for dotmodus\\[bot\\]:local/check:success"
-        - event: pull_request
-          action: labeled
-          label:
-            - mergeit
+          status: "SF Demo for dotmodus\\[bot\\]:RiaanSoftwareFactory/check:success"
     start:
-      gerrit:
-        Verified: 0
       github.com:
         status: 'pending'
-        status-url: "https://sftests.mundane.co.za/zuul/t/local/status.html"
+        status-url: "https://sftests.mundane.co.za/zuul/t/RiaanSoftwareFactory/status/change/{change.number},{change.patchset}"
         comment: false
     success:
-      gerrit:
-        Verified: 2
-        submit: true
       github.com:
         status: 'success'
+        status-url: "https://sftests.mundane.co.za/zuul/t/RiaanSoftwareFactory/buildset/{buildset.uuid}"
         merge: true
         comment: true
       sqlreporter:
     failure:
-      gerrit:
-        Verified: -2
       github.com:
         status: 'failure'
+        status-url: "https://sftests.mundane.co.za/zuul/t/RiaanSoftwareFactory/buildset/{buildset.uuid}"
         comment: true
       sqlreporter:
     window-floor: 20
@@ -144,9 +96,6 @@
     manager: supercedent
     precedence: low
     trigger:
-      gerrit:
-        - event: ref-updated
-          ref: ^refs/heads/.*$
       github.com:
         - event: push
           ref: ^refs/heads/.*$
@@ -166,9 +115,6 @@
     precedence: high
     post-review: True
     trigger:
-      gerrit:
-        - event: ref-updated
-          ref: ^refs/tags/([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9alpha|beta|rc.-]+))?(?:\+([0-9a-zA-Z.-]+))?$
       github.com:
         - event: push
           ref: ^refs/tags/([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9alpha|beta|rc.-]+))?(?:\+([0-9a-zA-Z.-]+))?$
@@ -188,9 +134,6 @@
     manager: independent
     precedence: high
     trigger:
-      gerrit:
-        - event: ref-updated
-          ref: ^refs/tags/([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z.-]+))?(?:\+([0-9a-zA-Z.-]+))?$
       github.com:
         - event: push
           ref: ^refs/tags/([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z.-]+))?(?:\+([0-9a-zA-Z.-]+))?$
@@ -229,20 +172,15 @@
     manager: independent
     precedence: normal
     trigger:
-      gerrit:
-        - event: comment-added
-          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*check experimental\s*$
       github.com:
         - event: pull_request
           action: comment
           comment: (?i)^\s*check experimental\s*$
     success:
       github.com: {}
-      gerrit: {}
       sqlreporter:
     failure:
       github.com: {}
-      gerrit: {}
       sqlreporter:
 
 - pipeline:
